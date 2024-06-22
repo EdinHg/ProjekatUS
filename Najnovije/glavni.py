@@ -11,34 +11,17 @@ import lvgl as lv
 import ili9xxx
 import math
 import time
+from data import *
 
-mqtt = MQTTCONN("Yo", "00000000")
+mqtt = MQTTCONN(SSID, PASSWORD)
 
-i2c = I2C(id=1, sda=Pin(26), scl=Pin(27), freq=100000)
+i2c = I2C(id=I2C_ID, sda=Pin(I2C_SDA), scl=Pin(I2C_SCL), freq=I2C_FREQ)
 print(i2c.scan())
 
-spi = SPI(0, baudrate=2_000_000, sck=Pin(18), mosi=Pin(19), miso=Pin(16))
-drv = ili9xxx.Ili9341(spi=spi, dc=15, cs=17, rst=20)
-
-PIXEL_PER_DEGREE = 50
+spi = SPI(SPI_ID, baudrate=SPI_BAUDRATE, sck=Pin(SPI_SCK), mosi=Pin(SPI_MOSI), miso=Pin(SPI_MISO))
+drv = ili9xxx.Ili9341(spi=spi, dc=DISPLAY_DC, cs=DISPLAY_CS, rst=DISPLAY_RST)
 
 last_interrupt_time = 0
-debounce_time = 200
-
-CLK_PIN = 0
-DT_PIN = 1
-SW_PIN = 2
-
-targets = [
-    "mercury",
-    "venus",
-    "mars",
-    "jupiter",
-    "saturn",
-    "uranus",
-    "neptune",
-    "sun"
-]
 
 target = 0
 mode = 0
@@ -51,21 +34,19 @@ lv.init()
 ######################## ORIENTING SCREEN ################################
 
 orienting_screen = lv.obj()
-orienting_screen.set_style_bg_color(lv.color_hex(0x0000FF), 0)
+orienting_screen.set_style_bg_color(lv.color_hex(BACKGROUND_COLOR_BLUE), 0)
 
 current_coords_label = lv.label(orienting_screen)
-current_coords_label.set_text("0, 0")
+current_coords_label.set_text(COORDINATES_LABEL)
 
 target_coords_label = lv.label(orienting_screen)
-target_coords_label.set_text("0, 0")
+target_coords_label.set_text(COORDINATES_LABEL)
 target_coords_label.align(lv.ALIGN.TOP_RIGHT, 0, 0)
 
-large_circle_radius = 100
-
 large_circle = lv.obj(orienting_screen)
-large_circle.set_size(large_circle_radius * 2, large_circle_radius * 2)
+large_circle.set_size(LARGE_CIRCLE_RADIUS * 2, LARGE_CIRCLE_RADIUS * 2)
 large_circle.align(lv.ALIGN.CENTER, 0, 0)
-large_circle.set_style_radius(large_circle_radius, 0)
+large_circle.set_style_radius(LARGE_CIRCLE_RADIUS, 0)
 large_circle.set_style_bg_color(lv.color_black(), 0)
 large_circle.set_style_border_color(lv.color_black(), 0)
 large_circle.set_style_border_width(2, 0)
@@ -76,7 +57,7 @@ image = Image_holder(orienting_screen)
 
 menu_screen = lv.obj()
 unos_label = lv.label(menu_screen)
-unos_label.set_text("Odaberite planetu")
+unos_label.set_text(MENU_SCREEN_TEXT)
 unos_label.align(lv.ALIGN.CENTER, 0, 0)
 
 ######################################################################
@@ -109,27 +90,27 @@ def update_screen(t):
 lv.screen_load(menu_screen)
     
 def encoder_click_handler(t):
-    global last_interrupt_time, target, targets, mode, mqtt, target_radians, image, update_screen_timer, orient
+    global last_interrupt_time, target, TARGETS, mode, mqtt, target_radians, image, update_screen_timer, orient
     global menu_screen, orienting_screen, r_encoder, current_coords_label
     
     
     current_time = time.ticks_ms()
         
-    if time.ticks_diff(current_time, last_interrupt_time) > debounce_time:
+    if time.ticks_diff(current_time, last_interrupt_time) > DEBOUNCE_TIME_MS:
         last_interrupt_time = current_time
         if mode == 0:
             # Set target
             target = r_encoder.get_target()
 
             # Load the planet image and orientation screen
-            image.load_image(targets[target])
+            image.load_image(TARGETS[target])
             lv.screen_load(orienting_screen)
             
             # Fetch initial coordinates from mqtt and set labels
             mqtt.request(target)
             azimuth, latitude = mqtt.get_coordinates()
             target_radians = (math.radians(azimuth), math.radians(latitude))
-            target_coords_label.set_text(f"{targets[target]}: {azimuth}, {latitude}") 
+            target_coords_label.set_text(f"{TARGETS[target]}: {azimuth}, {latitude}") 
             
             # Start timers for orientation
             update_screen_timer.init(period=200, callback=update_screen)
