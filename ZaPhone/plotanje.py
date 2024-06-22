@@ -8,7 +8,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-NEGLIBILE_DEGREES = 1
+NEGLIBILE_DEGREES = 5
 
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(10, 8))
 
@@ -38,7 +38,7 @@ for ax in (ax1, ax2, ax3):
 
 ax1.set_ylim(-20, 20)
 ax2.set_ylim(-100, 100)
-ax3.set_ylim(0, 360)
+ax3.set_ylim(-90, 360)
 
 ax1.set_ylabel('Acceleration')
 ax2.set_ylabel('Magnetic Field')
@@ -49,20 +49,6 @@ ax1.legend()
 ax2.legend()
 ax3.legend()
 
-def upute(target, current):
-    x_delta = target[0] - current[0]
-    if abs(x_delta) > 180: x_delta = current[0] - target[0]
-    y_delta = target[1] - current[1]
-
-    length = math.sqrt(x_delta**2 + y_delta**2)
-    x_delta = x_delta / length
-    y_delta = y_delta / length
-    angle = math.degrees(math.atan2(y_delta, x_delta))
-
-    print("Ugao zakretanja: na ekranu: ", angle)
-    print("Udaljenost: ", length)
-                         
-    return angle, length
 
 def init():
     line_x.set_data([], [])

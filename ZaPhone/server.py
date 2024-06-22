@@ -7,6 +7,7 @@ import paho.mqtt.client as mqtt
 import ephem
 from time import gmtime, strftime
 from datetime import datetime
+import ujson
 
 planete = [
     ephem.Mercury(),
@@ -31,7 +32,7 @@ observer.lat = latituda
 observer.date = strftime("%Y/%m/%d %H:%M:%S", gmtime())
 
 
-broker = 'broker.hivemq.com'
+broker = 'broker.emqx.io'
 port = 1883
 topic_sub = 'edinhg/request'  
 topic_pub = 'edinhg/response/' 
@@ -48,10 +49,16 @@ def on_message(client, userdata, msg):
     try:
         planeta_id = int(text)
         observer.date = strftime("%Y/%m/%d %H:%M:%S", gmtime())
+
+
         planeta = planete[planeta_id]
         planeta.compute(observer)
-        response = str(planeta.az) + ", " + str(planeta.alt)
-        client.publish(topic_pub + planeta.name, response)
+        
+        az = str(planeta.az).split(":")
+        alt = str(planeta.alt).split(":")
+        data = {'az': int(az[0]), 'lat': int(alt[0])}
+        
+        client.publish(topic_pub + planeta.name, ujson.dumps(data))
         print(f"Response sent to topic: {topic_pub + planeta.name}")
 
     except Exception as e: print(e)

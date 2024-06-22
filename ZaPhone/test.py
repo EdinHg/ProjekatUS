@@ -13,8 +13,8 @@ import threading
 import math
 from plotanje import *
 
-
-target = [ 17, -46 ]
+# Ovdje kooridnate cilja, lafo
+target = [ 87, -54 ]
 
 def filter(old_vector, new_vector, ratio):
     return [ old_vector[i] * (1 - ratio) + new_vector[i] * ratio for i in range(3) ]
@@ -24,6 +24,26 @@ PORT = 5555
 
 filtered_acc = [0, 0, 0]
 filtered_mag = [0, 0, 0]
+
+# 172.16.9.49
+
+def upute(target, current):
+    x_delta = target[0] - current[0]
+    x_delta = (x_delta + 180) % 360 - 180
+    y_delta = target[1] - current[1]
+
+    angle = math.degrees(math.atan2(y_delta, x_delta))
+
+    angle_length = math.degrees(
+        math.acos(math.cos(math.radians(target[1])) * math.cos(math.radians(current[1])) * math.cos(math.radians(target[0]) -
+               math.radians(current[0])) + math.sin(math.radians(target[1])) * math.sin(math.radians(current[1])))
+    )
+
+    print("Ugao zakretanja: na ekranu: ", angle)
+    print("Ugao udaljenosti: ", angle_length)
+
+                         
+    return angle, angle_length
 
 def socket_listener():
     global filtered_acc
@@ -56,7 +76,6 @@ def socket_listener():
                     if len(angle_data) > 5:
                         angle_data.pop(0)
 
-
                     new_acc = [ float(item.strip().strip("'")) for item in message[2:5] ]
                     new_mag = [ float(item.strip().strip("'")) for item in message[10:13] ]
 
@@ -72,12 +91,12 @@ def socket_listener():
                     mz_data.append(filtered_mag[2])
 
                     G = np.array(filtered_acc)
-                    G = G / np.linalg.norm(G)
-
                     M = np.array(filtered_mag)
-                    M = M / np.linalg.norm(M)
-
                     D = -G
+
+                    # G = G / np.linalg.norm(G)
+                    # M = M / np.linalg.norm(M)
+
 
                     E = np.cross(D, M)
                     E = E / np.linalg.norm(E)
@@ -85,18 +104,37 @@ def socket_listener():
                     N = np.cross(E, D)
                     N = N / np.linalg.norm(N)
 
-                    altitude = math.asin(-G[2])
+                    
+                    altitude = math.asin(-G[2] / np.linalg.norm(G))
 
-                    Z = np.array([0, 0, -1])
                     X = np.array([1, 0, 0])
                     Y = np.array([0, 1, 0])
+                    Z = np.array([0, 0, 1])
+
+                    # Ugao izmedju xy ravnine i N
+                    # Katastrofalna preciznost
+
+                    # Z_perp = math.sin(-altitude) * G
+                    # Z_proj = -Z - Z_perp
+                    # Z_proj = Z_proj / np.linalg.norm(Z_proj)
+
+                    # azimuth = math.acos(np.dot(N, Z_proj))
+                    # cross = np.cross(N, Z_proj)
+
+                    # if np.dot(cross, G) > 0:
+                    #     azimuth = 2 * math.pi - azimuth
+
+
+                    # Ugao izmedju y ose i N
+                    # Precizno u bobu, netacno par stepeni vjr. zbog pravog vs. magnetnog sjevera
 
                     azimuth = math.acos(np.dot(N, Y))
                     cross = np.cross(N, Y) 
+                    
                     if np.dot(cross, G) > 0:
                         azimuth = 2 * math.pi - azimuth
                     azimuth = (azimuth + math.pi / 2) % (2 * math.pi)
-
+                    
                     print("Target: ", target)
                     print("Azimuth: ", round(math.degrees(azimuth)))
                     print("Latitude: ", round(math.degrees(altitude)))

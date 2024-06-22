@@ -1,0 +1,6 @@
+Metadata-Version: 2.1
+Name: bmm150
+Version: 1.0.0
+Summary: BOSCH BMM150 magnetometer driver.
+Author: 
+License: MIT
