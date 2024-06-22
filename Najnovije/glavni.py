@@ -127,9 +127,8 @@ def encoder_click_handler(t):
             
             # Fetch initial coordinates from mqtt and set labels
             mqtt.request(target)
-            target_azimuth, target_latitude = mqtt.get_coordinates()
-            azimuth = int(math.degrees(target_azimuth))
-            latitude = int(math.degrees(target_latitude))
+            azimuth, latitude = mqtt.get_coordinates()
+            target_radians = (math.radians(azimuth), math.radians(latitude))
             target_coords_label.set_text(f"{targets[target]}: {azimuth}, {latitude}") 
             
             # Start timers for orientation
