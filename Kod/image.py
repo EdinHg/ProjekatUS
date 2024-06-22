@@ -21,7 +21,7 @@ class Image_holder:
         except NameError: 
             script_path = ''
         
-        file_path = f'{script_path}/{image_name}.png'
+        file_path = f'{script_path}/images/{image_name}.png'
 
         with open(file_path, 'rb') as f:
             png_data = f.read()
@@ -48,6 +48,6 @@ class Image_holder:
 
         self.image.set_pos(x, y)
         
-    # Brisnje slike, praznjenje cache-a
+    # Brisanje slike, praznjenje cache-a
     def remove_image(self):
         self.image.delete()

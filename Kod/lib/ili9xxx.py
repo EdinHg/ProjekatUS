@@ -16,7 +16,7 @@ pin configurations to match your hardware setup::
 """
 from micropython import const
 
-import st77xx
+import Kod.lib.st77xx as st77xx
 
 # Command constants from ILI9341 datasheet
 _NOP = const(0x00)  # No-op
