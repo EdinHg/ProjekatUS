@@ -451,7 +451,7 @@ class St77xx_lvgl(object):
     
     def __init__(self,doublebuffer=True,factor=4):
         import lvgl as lv
-        import Kod.lib.lv_utils as lv_utils
+        import lv_utils
 
         color_format = lv.COLOR_FORMAT.RGB565
         self.pixel_size = lv.color_format_get_size(color_format)

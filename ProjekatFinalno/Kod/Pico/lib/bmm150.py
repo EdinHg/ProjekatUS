@@ -113,10 +113,9 @@ class BMM150:
 
         # Allocate scratch buffer.
         self.scratch = memoryview(array.array("h", [0, 0, 0, 0]))
-
-        # Default offset.
-        self.offset = (-48.18894, 38.1932, 101.2676)
         
+        self.offset = (-10.60217, 32.72433, 48.29661)
+
     def _read_reg(self, reg, size=1):
         buf = self.bus.readfrom_mem(self.address, reg, size)
         if size == 1:
@@ -190,7 +189,7 @@ class BMM150:
         return (self._compensate_x(x, h) - self.offset[0],
                 self._compensate_y(y, h) - self.offset[1],
                 self._compensate_z(z, h) - self.offset[2])
-    
+
     def calibrate(self, n=1000, reset=True, delay=100):
         """Calibrates the magnetometer"""
         print("Calibrating...")

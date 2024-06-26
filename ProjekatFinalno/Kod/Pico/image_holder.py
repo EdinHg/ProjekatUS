@@ -38,13 +38,13 @@ class Image_holder:
         
         self.image = image
         
-    # Pomjeranje slike na osnovu ugla i distance u odnosu na centar
+    # Pomijeranje slike na osnovu ugla i distance u odnosu na centar
     def move_image(self, rad, distance):
         if distance > 100:
             distance = 100
         
         x = int(distance * math.cos(rad))
-        y = int(distance * math.sin(rad))
+        y = -int(distance * math.sin(rad))
 
         self.image.set_pos(x, y)
         

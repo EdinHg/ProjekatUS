@@ -38,7 +38,7 @@ class Orientation:
     def _dot_product(self, a, b):
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
     
-    # Funkcija koja implementira low-pass filter
+    # Funkcija koja filtrira nove vrijednosti senzora
     def _low_pass_filter(self, old_vector, new_vector, ratio):
         return [ 
             old_vector[i] * (1 - ratio) + new_vector[i] * ratio for i in range(3) 
@@ -49,8 +49,8 @@ class Orientation:
         new_acc = self.acc.xyz()
         new_mag = self.mag.xyz()
         
-        self.acc_vals = self._low_pass_filter(self.acc_vals, new_acc, 0.05)
-        self.mag_vals = self._low_pass_filter(self.mag_vals, new_mag, 0.05)
+        self.acc_vals = self._low_pass_filter(self.acc_vals, new_acc, self.acc_trust)
+        self.mag_vals = self._low_pass_filter(self.mag_vals, new_mag, self.mag_trust)
     
     # Funkcija koja vraca istocni vektor
     def _get_east(self, D):
@@ -64,19 +64,21 @@ class Orientation:
     # Funkcija koja vraca azimut
     def get_azimuth(self):
         N = self._get_north()
-        N = self._normalize(N)
+        
         azimuth = math.acos(self._dot_product(N, self.Y))
         cross = self._cross_product(N, self.Y) 
         
+        # Ako se rezultanti vektor istog smjera kao acc, onda je ugao 2PI - ugao
         if self._dot_product(cross, self.acc_vals) > 0:
             azimuth = self.TWOPI - azimuth
             
+        # Ovo je bio ugao u odnosu na Y osu, treba dodati PI/2
         azimuth = (azimuth + self.PI2) % self.TWOPI
 
         return azimuth
 
-    # Funkcija koja vraca latitudu
-    def get_latitude(self):
+    # Funkcija koja vraca altitudu
+    def get_altitude(self):
         g_z = self.acc_vals[2]
         if abs(g_z) >= 1:
             return math.copysign(self.PI2, -g_z)
@@ -92,20 +94,20 @@ class Orientation:
         self.acc_trust = trust
 
     # Funkcija koja odredjuje ugao i distancu izmedju trenutne i ciljne tacke
-    def upute(self,current_azimuth, current_latitude, target_azimuth, target_latitude):
-        x_delta = target_azimuth - current_azimuth
-        x_delta = (x_delta + self.PI) % self.TWOPI - self.PI
-        y_delta = target_latitude - current_latitude
+    def get_directions(self,current_azimuth, current_altitude, target):
+        x_delta = target[0] - current_azimuth
+        x_delta = (x_delta + self.PI) % self.TWOPI - self.PI # Normalizacija na [-PI, PI]
+        y_delta = target[1] - current_altitude
 
-        heading_angle = math.atan2(y_delta, x_delta)
+        screen_orientation_angle = math.atan2(y_delta, x_delta)
 
-        distance_angle = math.acos(math.cos(target_latitude) * math.cos(current_latitude) * math.cos(target_azimuth - current_azimuth) +
-                      math.sin(target_latitude) * math.sin(current_latitude))
+        distance_angle = math.acos(math.cos(target[1]) * math.cos(current_altitude) * math.cos(target[0] - current_azimuth) +
+                      math.sin(target[1]) * math.sin(current_altitude))
         
-        return heading_angle, distance_angle
+        return screen_orientation_angle, distance_angle
     
     # Funkcija koja pokrece citanje senzora
-    def start_reading(self, period=50):
+    def start_reading(self, period=100):
         self.reading_timer.init(period=period, callback=self._update_vals)
 
     # Funkcija koja zavrsava citanje senzora

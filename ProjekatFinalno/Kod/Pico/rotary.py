@@ -34,7 +34,7 @@ class Rotary:
             self.leds[previous].off()
             self.leds[self.target].on()
     
-    # Funkcija koja omogucava handler-e
+    # Funkcije koje incijaliziraju i deinicijaliziraju handler-e
     def enable_click_handler(self):
         if (self.click_handler == None):
             print("Click handler not set")

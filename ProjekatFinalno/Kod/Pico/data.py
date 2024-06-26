@@ -1,8 +1,8 @@
 # Konstante koristene u okviru projekta
 
 # Uspostavljanje konekcije sa MQTT klijentom
-SSID = "Yo"
-PASSWORD = "00000000"
+SSID = "Lab220"
+PASSWORD = "lab220lozinka"
 
 # Inicijalizacija I2C objekta
 I2C_ID = 1
@@ -23,6 +23,7 @@ DISPLAY_CS = 17
 DISPLAY_RST = 20
 
 # Konstante koristene u ostatku programa
+LAST_INTERRUPT_TIME = 0
 PIXEL_PER_DEGREE = 50
 DEBOUNCE_TIME_MS = 200
 CLK_PIN = 0
@@ -41,6 +42,4 @@ TARGETS = [
 ]
 
 BACKGROUND_COLOR_BLUE = 0x0000FF
-COORDINATES_LABEL = "0, 0"
 LARGE_CIRCLE_RADIUS = 100
-MENU_SCREEN_TEXT = "Odaberite planetu"

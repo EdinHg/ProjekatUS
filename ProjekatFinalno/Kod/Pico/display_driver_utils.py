@@ -4,7 +4,7 @@ sys.path.append('') # See: https://github.com/micropython/micropython/issues/641
 import lvgl as lv
 
 try:
-    import Kod.lib.lv_utils as lv_utils
+    import lv_utils
     lv_utils_available = True
 except:
     lv_utils_available = False
